@@ -1,0 +1,85 @@
+---
+title: "Homework for week 5 - Gating Sets"
+format: html
+execute:
+  echo: true
+---
+
+# Problem 1
+
+```{r} Test
+#| label: file paths and establish gating set
+#| code-fold: show
+
+#load the gating set
+
+library(CytoML)
+
+#find homework folder
+Folder <- file.path("course", "05_GatingSets", "data")
+
+#find the .wsp file
+FlowJoWsp <- list.files(path = Folder, pattern = ".wsp", full = TRUE)
+
+#establish that .wsp file into a workspace
+ThisWorkspace <- FlowJoWsp[stringr::str_detect(FlowJoWsp, "Opened")]
+
+#assign intermediate xml file
+ws <- open_flowjo_xml(ThisWorkspace)
+
+#use the intermediate object to load in the gating set
+gs <- flowjo_to_gatingset(ws=ws, name=1, path = Folder, additional.keys="GROUPNAME")
+
+library(tidyverse)
+library(flowWorkspace)
+#make the population counts into a data frame
+df <- gs_pop_get_count_fast(gs)
+
+#make a new data frame, and use mutate to calculate the ratio *100
+df_pop <- df |> 
+    mutate(
+        `% Parent Gate` = Count / ParentCount * 100
+    )
+
+```
+
+#Problem 3
+
+```{r}
+#| label: Problem 3
+library(CytoML)
+library(ggcyto)
+
+#I have previously worked with the facet_wrap() layer, so I also wanted to figure out how to do this in a way where everything is graphed together so that the Ctrl and SEB samples are graphed in a logical manner. To do this, I need to make each sample name unique since their default names are not.
+
+#extract additional metadata to help make unqiue sample names, just like we did in the course notes. Doing this does actually provide rows with unique names, but I didn't figure out how to extract those in a way where they were usable when graphing.
+AlternateGS <- flowjo_to_gatingset(ws=ws, name=1, path = Folder, additional.keys="GROUPNAME", keywords=c("$DATE", "$CYT", "GROUPNAME"), additional.sampleID = TRUE)
+
+#pull the pData, like in the course notes
+pd <- pData(AlternateGS)
+
+#Now I have a tidy data frame. I knew I wanted to use mutate, but I had to look up how to concatenate information from different columns. I found the paste() function, and just had to add the sep argument so each component was separated by an underscore. It seems like there should be a cleaner way to do this, but this worked.
+pd_unique <- pd |> 
+    mutate(unique_id = paste(GROUPNAME, `$DATE`, name, sep = "_"))
+
+#Now I want to add these unqiue names to the gating set. This confused me for a while, but all I had to do was just replace the pData from AlternateGS with the new names in pd_unique by assinging it as a variable. 
+pData(AlternateGS) <- pd_unique
+
+#Now I have unique names, so I just graph it with ggcyto using the AlternateGS as the data. Subset is CD4+, and the two axis I am interested in.
+ggcyto(AlternateGS, subset="CD4+", aes(x="TNFa", y="IFNg")) +
+    #since I am using facet_wrap, I will make the bins smaller 
+     geom_hex(bins=75) +
+     #Now when I want to use facet_wrap layer, I can simply call the unique_id column I made in pd_unique to make all six plots. The default layout had controls and tests in a way that didn't make sense, so I changed the row numbers so controls are in the left column and tests are in the right column
+     facet_wrap(~ unique_id, nrow = 3)
+
+#That worked. I tried to use facet_grid to get all three populations in one graph (six columns for each sample, three rows for each population), but I couldn't figure out how to iterate over the three different T cell populations. So instead, I just copied that graph for the other two populations to simply make them into three separate graphs.
+
+ggcyto(AlternateGS, subset="CD4-CD8-", aes(x="TNFa", y="IFNg")) +
+     geom_hex(bins=75) +
+     facet_wrap(~ unique_id, nrow = 3)
+
+ggcyto(AlternateGS, subset="CD8+", aes(x="TNFa", y="IFNg")) +
+     geom_hex(bins=75) +
+     facet_wrap(~ unique_id, nrow = 3)
+
+```
