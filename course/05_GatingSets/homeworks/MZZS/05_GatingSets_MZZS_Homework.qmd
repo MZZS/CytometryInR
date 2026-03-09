@@ -7,12 +7,10 @@ execute:
 
 # Problem 1
 
-```{r} Test
-#| label: file paths and establish gating set
+```{r}
 #| code-fold: show
 
 #load the gating set
-
 library(CytoML)
 
 #find homework folder
@@ -21,7 +19,7 @@ Folder <- file.path("course", "05_GatingSets", "data")
 #find the .wsp file
 FlowJoWsp <- list.files(path = Folder, pattern = ".wsp", full = TRUE)
 
-#establish that .wsp file into a workspace
+#turn .wsp file into a workspace
 ThisWorkspace <- FlowJoWsp[stringr::str_detect(FlowJoWsp, "Opened")]
 
 #assign intermediate xml file
@@ -45,10 +43,23 @@ df_pop <- df |>
 
 #Problem 3
 
-```{r}
+```{r} P3
 #| label: Problem 3
 library(CytoML)
 library(ggcyto)
+library(tidyverse)
+
+#find homework folder
+Folder <- file.path("course", "05_GatingSets", "data")
+
+#find the .wsp file
+FlowJoWsp <- list.files(path = Folder, pattern = ".wsp", full = TRUE)
+
+#establish that .wsp file into a workspace
+ThisWorkspace <- FlowJoWsp[stringr::str_detect(FlowJoWsp, "Opened")]
+
+#assign intermediate xml file
+ws <- open_flowjo_xml(ThisWorkspace)
 
 #I have previously worked with the facet_wrap() layer, so I also wanted to figure out how to do this in a way where everything is graphed together so that the Ctrl and SEB samples are graphed in a logical manner. To do this, I need to make each sample name unique since their default names are not.
 
