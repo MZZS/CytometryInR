@@ -1,8 +1,8 @@
 ---
 title: "Homework for week 5 - Gating Sets"
 format: html
-execute:
-  echo: true
+embed-resources: true
+toc: true
 ---
 
 # Problem 1
