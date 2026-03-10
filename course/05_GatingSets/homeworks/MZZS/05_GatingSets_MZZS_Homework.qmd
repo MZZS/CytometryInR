@@ -5,21 +5,25 @@ embed-resources: true
 toc: true
 ---
 
-# Problem 1
+Problem 1
 
 ```{r}
+#| label: Problem 1
 #| code-fold: show
 
 #load the gating set
 library(CytoML)
+library(tidyverse)
+library(flowWorkspace)
 
 #find homework folder
-Folder <- file.path("course", "05_GatingSets", "data")
+Folder <- file.path("course", "05_GatingSets", "data") #for testing
 
-#find the .wsp file
-FlowJoWsp <- list.files(path = Folder, pattern = ".wsp", full = TRUE)
+#Folder <- file.path("data") #for Quarto Rendering
 
-#turn .wsp file into a workspace
+FlowJoWsp <- list.files(path = Folder, pattern = "OpenedCopy.wsp", full = TRUE)
+
+#find the .wsp file, turn it into a workspace
 ThisWorkspace <- FlowJoWsp[stringr::str_detect(FlowJoWsp, "Opened")]
 
 #assign intermediate xml file
@@ -28,8 +32,6 @@ ws <- open_flowjo_xml(ThisWorkspace)
 #use the intermediate object to load in the gating set
 gs <- flowjo_to_gatingset(ws=ws, name=1, path = Folder, additional.keys="GROUPNAME")
 
-library(tidyverse)
-library(flowWorkspace)
 #make the population counts into a data frame
 df <- gs_pop_get_count_fast(gs)
 
@@ -39,31 +41,36 @@ df_pop <- df |>
         `% Parent Gate` = Count / ParentCount * 100
     )
 
+df_pop
 ```
 
-#Problem 3
+Problem 3
+
 
 ```{r} P3
 #| label: Problem 3
+#| code-fold: show
+
 library(CytoML)
 library(ggcyto)
 library(tidyverse)
+library(flowWorkspace)
+library(stringr)
 
 #find homework folder
 Folder <- file.path("course", "05_GatingSets", "data")
 
 #find the .wsp file
-FlowJoWsp <- list.files(path = Folder, pattern = ".wsp", full = TRUE)
-
-#establish that .wsp file into a workspace
-ThisWorkspace <- FlowJoWsp[stringr::str_detect(FlowJoWsp, "Opened")]
+ThisWorkspace <- list.files(path = Folder, pattern = "OpenedCopy.wsp", full = TRUE)
 
 #assign intermediate xml file
+
 ws <- open_flowjo_xml(ThisWorkspace)
 
 #I have previously worked with the facet_wrap() layer, so I also wanted to figure out how to do this in a way where everything is graphed together so that the Ctrl and SEB samples are graphed in a logical manner. To do this, I need to make each sample name unique since their default names are not.
 
 #extract additional metadata to help make unqiue sample names, just like we did in the course notes. Doing this does actually provide rows with unique names, but I didn't figure out how to extract those in a way where they were usable when graphing.
+
 AlternateGS <- flowjo_to_gatingset(ws=ws, name=1, path = Folder, additional.keys="GROUPNAME", keywords=c("$DATE", "$CYT", "GROUPNAME"), additional.sampleID = TRUE)
 
 #pull the pData, like in the course notes
