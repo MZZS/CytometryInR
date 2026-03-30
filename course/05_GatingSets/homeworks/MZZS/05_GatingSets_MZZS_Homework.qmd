@@ -44,6 +44,12 @@ df_pop <- df |>
 df_pop
 ```
 
+Problem 2
+
+```
+
+```
+
 Problem 3
 
 
